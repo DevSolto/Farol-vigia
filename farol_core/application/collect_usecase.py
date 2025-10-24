@@ -9,6 +9,7 @@ from logging import Logger
 
 from farol_core.domain.contracts import (
     ArticleInput,
+    ArticleWriteResult,
     ArticleWriter,
     Clock,
     DateNormalizer,
@@ -174,7 +175,7 @@ class CollectUseCase:
                     continue
 
                 try:
-                    article_id = self._writer.write(article)
+                    write_result: ArticleWriteResult = self._writer.write(article, fingerprint)
                 except FarolError as exc:
                     metrics["skipped"]["write"] += 1
                     self._logger.error(
@@ -195,8 +196,9 @@ class CollectUseCase:
                 persisted.append(
                     {
                         "url": article.url,
-                        "article_id": article_id,
+                        "article_id": write_result.article_id,
                         "fingerprint": fingerprint,
+                        "status": write_result.status,
                         "processed_at": processed_at,
                     }
                 )
@@ -205,8 +207,9 @@ class CollectUseCase:
                     extra={
                         "extra": {
                             "url": article.url,
-                            "article_id": article_id,
+                            "article_id": write_result.article_id,
                             "fingerprint": fingerprint,
+                            "status": write_result.status,
                             "page_index": page_index,
                             "position": position,
                         }
@@ -234,13 +237,16 @@ class CollectUseCase:
         normalized_url: str,
         page_metadata: Mapping[str, object],
     ) -> ArticleInput:
+        collected_at = self._clock.now()
         content_html = item.content_html or ""
         if not content_html:
             raise FarolError("Artigo sem conteúdo")
 
         sanitized_html = self._text_cleaner.sanitize_html(content_html)
+        content_text = self._text_cleaner.clean_html_to_text(content_html)
         summary_source = item.summary_html if item.summary_html is not None else content_html
         summary_text = self._text_cleaner.clean_html_to_text(summary_source)
+        summary_value = summary_text or None
 
         title = item.title or summary_text or "Sem título"
 
@@ -249,15 +255,26 @@ class CollectUseCase:
             published_at = self._date_normalizer.parse(item.published_at, reference=None)
 
         combined_metadata: dict[str, object] = {**page_metadata, **item.metadata}
-        combined_metadata.setdefault("normalized_at", self._clock.now().isoformat())
+        combined_metadata.setdefault("normalized_at", collected_at.isoformat())
+
+        portal_name = str(
+            combined_metadata.get("portal_name")
+            or page_metadata.get("portal_name")
+            or item.metadata.get("portal_name")
+            or ""
+        )
 
         article = ArticleInput(
             url=normalized_url,
             title=title,
-            content=sanitized_html,
-            summary=summary_text,
+            portal_name=portal_name,
+            summary=summary_value,
+            content_html=sanitized_html,
+            content_text=content_text,
             tags=tuple(item.tags),
+            published_at_raw=item.published_at,
             published_at=published_at,
+            collected_at=collected_at,
             metadata=combined_metadata,
         )
         return article
