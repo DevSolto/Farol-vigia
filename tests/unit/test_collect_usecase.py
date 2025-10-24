@@ -9,7 +9,7 @@ from datetime import datetime
 import pytest
 
 from farol_core.application.collect_usecase import CollectUseCase, RequestsSoupScraper, ScrapedItem
-from farol_core.domain.contracts import ArticleInput
+from farol_core.domain.contracts import ArticleInput, ArticleWriteResult
 from farol_core.domain.errors import FarolError
 from farol_core.infrastructure.logging.logger import configure_logger
 
@@ -24,11 +24,12 @@ class _ClockStub:
 
 class _WriterStub:
     def __init__(self) -> None:
-        self.received: list[ArticleInput] = []
+        self.received: list[tuple[ArticleInput, str]] = []
+        self.next_result = ArticleWriteResult(status="inserted", article_id="article-id")
 
-    def write(self, article: ArticleInput) -> str:
-        self.received.append(article)
-        return "article-id"
+    def write(self, article: ArticleInput, fingerprint: str) -> ArticleWriteResult:
+        self.received.append((article, fingerprint))
+        return self.next_result
 
 
 class _ScraperStub(RequestsSoupScraper):
@@ -162,8 +163,9 @@ def test_collect_usecase_processes_pages_and_apply_dedup() -> None:
     result = use_case.execute()
 
     assert len(scraper.called_with) == 2
-    assert writer.received and writer.received[0].url == "https://example.com/page-1/item-1"
-    assert writer.received[0].metadata["section"] == "home"
+    assert writer.received and writer.received[0][0].url == "https://example.com/page-1/item-1"
+    assert writer.received[0][0].metadata["section"] == "home"
+    assert writer.received[0][1] == "primeiro"
 
     assert result["metrics"]["processed"] == 1
     assert result["metrics"]["skipped"] == {"url": 1, "fingerprint": 1}
@@ -173,6 +175,7 @@ def test_collect_usecase_processes_pages_and_apply_dedup() -> None:
             "url": "https://example.com/page-1/item-1",
             "article_id": "article-id",
             "fingerprint": "primeiro",
+            "status": "inserted",
             "processed_at": clock.instant.isoformat(),
         }
     ]

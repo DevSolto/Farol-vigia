@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Iterable, Mapping, MutableMapping, Sequence
 from dataclasses import dataclass, field
 from datetime import datetime
+from typing import Literal
 from typing import Protocol
 
 
@@ -33,11 +34,23 @@ class ArticleInput:
 
     url: str
     title: str
-    content: str
+    portal_name: str
     summary: str | None
+    content_html: str
+    content_text: str
     tags: Sequence[str]
+    published_at_raw: str | None
     published_at: datetime | None
+    collected_at: datetime
     metadata: Mapping[str, object] = field(default_factory=dict)
+
+
+@dataclass(slots=True)
+class ArticleWriteResult:
+    """Representa o resultado da tentativa de gravação de um artigo."""
+
+    status: Literal["inserted", "updated"]
+    article_id: str | None = None
 
 
 class Fetcher(Protocol):
@@ -64,8 +77,8 @@ class Normalizer(Protocol):
 class ArticleWriter(Protocol):
     """Interface para persistência de artigos normalizados."""
 
-    def write(self, article: ArticleInput) -> str | None:
-        """Persiste o artigo e retorna um identificador opcional."""
+    def write(self, article: ArticleInput, fingerprint: str) -> ArticleWriteResult:
+        """Persiste o artigo retornando o status da operação."""
 
 
 class Clock(Protocol):
@@ -111,6 +124,7 @@ class Deduper(Protocol):
 
 __all__ = (
     "ArticleInput",
+    "ArticleWriteResult",
     "ArticleWriter",
     "Clock",
     "DateNormalizer",

@@ -26,6 +26,11 @@ def test_normalizer_applies_defaults_and_metadata() -> None:
     assert normalized.title == "Título"
     assert normalized.summary == "Resumo curto"
     assert normalized.tags == ("politica", "nordeste")
+    assert normalized.portal_name == ""
+    assert normalized.content_html == "Conteúdo completo do artigo"
+    assert normalized.content_text == "Conteúdo completo do artigo"
+    assert normalized.published_at_raw is None
+    assert isinstance(normalized.collected_at, datetime)
     assert normalized.metadata["summary"] == "Resumo curto"
     assert "normalized_at" in normalized.metadata
 

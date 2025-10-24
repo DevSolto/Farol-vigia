@@ -38,15 +38,25 @@ class SimpleNormalizer(Normalizer):
         tags: Sequence[str] = self._extract_tags(article)
 
         metadata = dict(article.metadata)
-        metadata.setdefault("normalized_at", datetime.utcnow().isoformat())
+        now = datetime.utcnow()
+        metadata.setdefault("normalized_at", now.isoformat())
+
+        portal_name = str(metadata.get("portal_name", ""))
+        published_at_raw = metadata.get("published_at_raw")
+        if not isinstance(published_at_raw, str):
+            published_at_raw = None
 
         return ArticleInput(
             url=article.url,
             title=title,
-            content=article.body,
+            portal_name=portal_name,
             summary=summary_text,
+            content_html=article.body,
+            content_text=article.body,
             tags=tags,
+            published_at_raw=published_at_raw,
             published_at=published_at,
+            collected_at=now,
             metadata=metadata,
         )
 

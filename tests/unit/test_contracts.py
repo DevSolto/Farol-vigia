@@ -85,12 +85,17 @@ def test_deduper_protocol_stub() -> None:
     deduper: Deduper = StubDeduper()
 
     article = ArticleInput(
-        url="https://example.com/noticia", 
+        url="https://example.com/noticia",
         title="Título",
-        content="Conteúdo",
+        portal_name="Portal",
         summary=None,
+        content_html="<p>Conteúdo</p>",
+        content_text="Conteúdo",
         tags=(),
+        published_at_raw=None,
         published_at=None,
+        collected_at=datetime(2024, 1, 1, 12, 0, 0),
+        metadata={},
     )
 
     fingerprint = deduper.fingerprint(article)
