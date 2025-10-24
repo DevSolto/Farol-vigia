@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import json
 import os
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
-from typing import Mapping, Sequence
 
 
 @dataclass(slots=True)
@@ -40,7 +40,9 @@ class Settings:
     application: ApplicationSettings
 
 
-def _load_json(value: str | None, *, default: Mapping[str, str] | None = None) -> Mapping[str, str]:
+def _load_json(
+    value: str | None, *, default: Mapping[str, str] | None = None
+) -> Mapping[str, str]:
     if not value:
         return default or {}
     try:
@@ -90,4 +92,9 @@ def load_settings() -> Settings:
         fallback_title=os.environ.get("FAROL_FALLBACK_TITLE", "Sem título"),
     )
 
-    return Settings(http=http, parser=parser, database=database, application=application)
+    return Settings(
+        http=http,
+        parser=parser,
+        database=database,
+        application=application,
+    )

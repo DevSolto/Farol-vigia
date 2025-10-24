@@ -264,6 +264,40 @@
 * PRs com checklist (testes, docs atualizadas)
 * Lint/format nos dois serviços
 
-## 16) Licença
+## 16) Qualidade de Código
+
+Para rodar as ferramentas locais instale as dependências de desenvolvimento:
+
+```bash
+pip install .[dev]
+```
+
+Em seguida execute:
+
+* **Ruff** (lint):
+
+  ```bash
+  ruff check .
+  ```
+
+* **Black** (formatação):
+
+  ```bash
+  black .
+  ```
+
+* **Mypy** (type-check estrito):
+
+  ```bash
+  mypy .
+  ```
+
+* **Pytest** (testes unitários e de integração):
+
+  ```bash
+  pytest
+  ```
+
+## 17) Licença
 
 A definir (ex.: MIT ou Apache-2.0).
