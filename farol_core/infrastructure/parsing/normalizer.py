@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterable, Sequence
 from datetime import datetime
-from typing import Iterable, Sequence
 
 from farol_core.domain.contracts import ArticleInput, Normalizer, RawArticle
 from farol_core.domain.errors import NormalizeError
@@ -25,13 +25,13 @@ class SimpleNormalizer(Normalizer):
         if not article.body:
             raise NormalizeError("Artigo sem conteúdo para normalização")
 
-        title = article.title or str(article.metadata.get("title") or self._fallback_title)
-        summary = (
-            article.metadata.get("summary")  # type: ignore[arg-type]
-            if hasattr(article.metadata, "get")
-            else None
+        title = article.title or str(
+            article.metadata.get("title") or self._fallback_title
         )
-        summary_text = str(summary) if summary is not None else article.body[:280]
+        summary_value = article.metadata.get("summary")
+        summary_text = (
+            str(summary_value) if summary_value is not None else article.body[:280]
+        )
 
         published_at = self._extract_datetime(article)
 
@@ -63,6 +63,8 @@ class SimpleNormalizer(Normalizer):
 
     def _extract_tags(self, article: RawArticle) -> Sequence[str]:
         value = article.metadata.get("tags")
-        if isinstance(value, (list, tuple)):
+        if isinstance(value, list):
+            return tuple(str(tag) for tag in value)
+        if isinstance(value, tuple):
             return tuple(str(tag) for tag in value)
         return self._default_tags

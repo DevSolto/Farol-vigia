@@ -11,11 +11,11 @@ class StructuredFormatter(logging.Formatter):
     """Formatter que serializa o atributo ``extra`` caso exista."""
 
     def format(self, record: LogRecord) -> str:  # noqa: D401
-        if not hasattr(record, "extra"):
-            record.extra = {}  # type: ignore[attr-defined]
-        elif not isinstance(record.extra, dict):  # type: ignore[attr-defined]
-            record.extra = {"value": record.extra}  # type: ignore[attr-defined]
-        record.extra = json.dumps(record.extra, ensure_ascii=False)  # type: ignore[attr-defined]
+        extra_value = getattr(record, "extra", {})
+        if not isinstance(extra_value, dict):
+            extra_value = {"value": extra_value}
+        formatted_extra = json.dumps(extra_value, ensure_ascii=False)
+        record.__dict__["extra"] = formatted_extra
         return super().format(record)
 
 

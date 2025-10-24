@@ -1,0 +1,56 @@
+[build-system]
+requires = ["setuptools>=67"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "farol-vigia"
+version = "0.1.0"
+description = "Core da coleta Farol do Nordeste"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.11"
+authors = [{name = "Farol"}]
+dependencies = [
+  "httpx>=0.26",
+  "pymongo>=4.6",
+  "selectolax>=0.3.15",
+]
+
+[project.optional-dependencies]
+dev = [
+  "black>=24.3",
+  "mypy>=1.9",
+  "ruff>=0.4.4",
+  "pytest>=8.1",
+]
+
+[tool.black]
+line-length = 88
+target-version = ["py311"]
+
+[tool.ruff]
+line-length = 88
+src = ["farol_core", "config", "tests"]
+exclude = [".git", "__pycache__"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "B", "UP", "S"]
+ignore = ["S101"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["farol_core", "config"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+mypy_path = ["."]
+
+[[tool.mypy.overrides]]
+module = ["httpx.*", "pymongo.*", "selectolax.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+addopts = "-ra"
+testpaths = ["tests"]
+pythonpath = ["."]

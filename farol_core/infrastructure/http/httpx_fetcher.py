@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Iterable, Mapping
+from collections.abc import Iterable, Mapping
+from typing import Any
 
 from farol_core.domain.contracts import Fetcher, RawListingItem
 from farol_core.domain.errors import FetchError
@@ -11,7 +12,7 @@ from farol_core.domain.errors import FetchError
 class HttpxFetcher(Fetcher):
     """Implementação de ``Fetcher`` usando um cliente httpx síncrono."""
 
-    def __init__(self, client, url: str, *, item_key: str = "items") -> None:
+    def __init__(self, client: Any, url: str, *, item_key: str = "items") -> None:
         self._client = client
         self._url = url
         self._item_key = item_key
@@ -26,12 +27,14 @@ class HttpxFetcher(Fetcher):
         try:
             payload = response.json()
         except Exception as exc:  # noqa: BLE001
-            raise FetchError("Resposta inválida ao decodificar JSON", cause=exc) from exc
+            raise FetchError(
+                "Resposta inválida ao decodificar JSON", cause=exc
+            ) from exc
 
         items_data = self._extract_items(payload)
         return [self._build_item(entry) for entry in items_data]
 
-    def _extract_items(self, payload) -> list[Mapping[str, object]]:
+    def _extract_items(self, payload: object) -> list[Mapping[str, object]]:
         if isinstance(payload, Mapping):
             items = payload.get(self._item_key)
         else:
@@ -51,7 +54,9 @@ class HttpxFetcher(Fetcher):
             url = str(entry["url"])
             content = str(entry.get("content", ""))
         except KeyError as exc:
-            raise FetchError("Item da listagem sem campo obrigatório", cause=exc) from exc
+            raise FetchError(
+                "Item da listagem sem campo obrigatório", cause=exc
+            ) from exc
 
         metadata = {k: v for k, v in entry.items() if k not in {"url", "content"}}
         return RawListingItem(url=url, content=content, metadata=metadata)

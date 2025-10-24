@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterable, Mapping, MutableMapping, Sequence
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Iterable, Mapping, MutableMapping, Protocol, Sequence
+from typing import Protocol
 
 
 @dataclass(slots=True)
@@ -47,7 +48,7 @@ class Fetcher(Protocol):
 
 
 class Parser(Protocol):
-    """Interface para componentes que transformam itens da listagem em artigos brutos."""
+    """Interface para transformar itens da listagem em artigos brutos."""
 
     def parse(self, item: RawListingItem) -> RawArticle:
         """Realiza o parsing do conteúdo bruto."""

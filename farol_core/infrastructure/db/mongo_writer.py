@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 from farol_core.domain.contracts import ArticleInput, ArticleWriter
 from farol_core.domain.errors import WriteError
@@ -11,7 +12,7 @@ from farol_core.domain.errors import WriteError
 class MongoArticleWriter(ArticleWriter):
     """Implementação de ``ArticleWriter`` para MongoDB."""
 
-    def __init__(self, collection) -> None:
+    def __init__(self, collection: Any) -> None:
         self._collection = collection
 
     def write(self, article: ArticleInput) -> str | None:

@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
+from logging import Logger
+
 from farol_core.domain.contracts import (
     ArticleInput,
     ArticleWriter,
@@ -25,7 +28,7 @@ class CollectUseCase:
         normalizer: Normalizer,
         writer: ArticleWriter,
         clock: Clock,
-        logger,
+        logger: Logger,
     ) -> None:
         self._fetcher = fetcher
         self._parser = parser
@@ -34,10 +37,10 @@ class CollectUseCase:
         self._clock = clock
         self._logger = logger
 
-    def execute(self) -> list[dict[str, object]]:
+    def execute(self) -> list[Mapping[str, object]]:
         """Executa o fluxo de coleta completo retornando relatórios por item."""
 
-        collected: list[dict[str, object]] = []
+        collected: list[Mapping[str, object]] = []
         self._logger.info(
             "collect.start", extra={"extra": {"at": self._clock.now().isoformat()}}
         )
@@ -78,7 +81,7 @@ class CollectUseCase:
                 )
                 continue
 
-            result = {
+            result: dict[str, object] = {
                 "url": normalized.url,
                 "article_id": article_id,
                 "processed_at": self._clock.now().isoformat(),
