@@ -73,3 +73,53 @@ class Clock(Protocol):
 
     def now(self) -> datetime:
         """Retorna o instante atual."""
+
+
+class UrlNormalizer(Protocol):
+    """Interface responsável por normalizar URLs relativas."""
+
+    def to_absolute(self, url: str, base_url: str | None = None) -> str:
+        """Converte uma URL possivelmente relativa em absoluta."""
+
+
+class TextCleaner(Protocol):
+    """Interface para sanitização e conversão de HTML em texto limpo."""
+
+    def clean_html_to_text(self, html: str) -> str:
+        """Remove marcações HTML retornando apenas o texto."""
+
+    def sanitize_html(self, html: str) -> str:
+        """Produz HTML seguro para exibição."""
+
+
+class DateNormalizer(Protocol):
+    """Interface para normalização de datas representadas como texto."""
+
+    def parse(self, value: str, reference: datetime | None = None) -> datetime | None:
+        """Interpreta uma data textual retornando um ``datetime`` normalizado."""
+
+
+class Deduper(Protocol):
+    """Interface responsável por detectar duplicatas de artigos."""
+
+    def fingerprint(self, article: ArticleInput) -> str:
+        """Gera um identificador de unicidade para um artigo."""
+
+    def is_new(self, fingerprint: str) -> bool:
+        """Indica se o identificador fornecido já foi visto anteriormente."""
+
+
+__all__ = (
+    "ArticleInput",
+    "ArticleWriter",
+    "Clock",
+    "DateNormalizer",
+    "Deduper",
+    "Fetcher",
+    "Normalizer",
+    "Parser",
+    "RawArticle",
+    "RawListingItem",
+    "TextCleaner",
+    "UrlNormalizer",
+)
