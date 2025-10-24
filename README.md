@@ -258,6 +258,44 @@
 
 ---
 
+## 14) Padrões de Código
+
+### Nomenclatura e organização
+
+* Use nomes descritivos e consistentes com o domínio (`Fetcher`, `Parser`, `Normalizer`) ao implementar contratos definidos em `farol_core/domain/contracts.py`.
+* Prefira módulos coesos por contexto (`domain`, `application`, `infrastructure`) e arquivos curtos agrupando responsabilidades similares.
+* Classes de dados devem ser `@dataclass(slots=True)` quando representarem estruturas estáticas (ex.: `ArticleInput`, `RawArticle`).
+
+### Limites de funções e complexidade
+
+* Funções públicas não devem ultrapassar ~40 linhas; extraia etapas auxiliares privadas (_helpers_) para manter legibilidade.
+* Garanta uma única responsabilidade por função/método. Fluxos extensos devem ser expressos como sequências de chamadas encadeadas (vide `CollectUseCase.execute`).
+
+### Tratamento de erros
+
+* Lance exceções específicas derivadas de `FarolError` para erros previstos (`FetchError`, `ParseError`, etc.) e faça _wrap_ de exceções inesperadas preservando a causa.
+* Não silencie exceções; registre contexto mínimo (URL, fonte, id) usando o logger antes de propagar ou converter o erro.
+
+### Imutabilidade e efeitos colaterais
+
+* Prefira estruturas imutáveis (`Mapping`, `Sequence`, tuplas) para dados compartilhados entre camadas. Utilize `dataclasses.field(default_factory=...)` para coleções mutáveis.
+* Evite mutar argumentos recebidos; retorne novos objetos quando normalizar ou enriquecer dados.
+
+### Tipagem
+
+* Ative _type hints_ completos, incluindo retornos opcionais e `Literal` quando aplicável; o projeto roda `mypy` em modo estrito.
+* Ao interagir com APIs dinâmicas, limite o uso de `Any` e documente contratos via `Protocol` ou `TypedDict`.
+
+### Como estender (OCP)
+
+1. **Configuração**: declare o portal em um arquivo de configuração (ex.: variável de ambiente consumida por `config/settings.py`) contendo URL base, seletores e parâmetros específicos.
+2. **Normalização**: implemente classes que respeitem os `Protocol` de `Fetcher`, `Parser` e `Normalizer` no pacote `farol_core.infrastructure`, reutilizando utilitários existentes.
+3. **Persistência**: adicione/adapte um `ArticleWriter` especializado caso a coleção ou formato mude; mantenha a assinatura do protocolo.
+4. **Orquestração**: instancie as novas classes no _composition root_ (CLI, workers) e injete-as no `CollectUseCase` para aproveitar o fluxo padrão.
+5. **Testes**: cubra integrações com _fixtures_ isolando chamadas externas e validando o contrato esperado pelo `CollectUseCase`.
+
+---
+
 ## 15) Contribuição
 
 * Padrão de branches: `main` (proteção), `feat/*`, `fix/*`
@@ -297,6 +335,8 @@ Em seguida execute:
   ```bash
   pytest
   ```
+
+O pipeline de CI (`.github/workflows/ci.yml`) executa automaticamente as mesmas etapas em pushes e pull requests. Reproduza-as localmente antes de abrir um PR.
 
 ## 17) Licença
 
